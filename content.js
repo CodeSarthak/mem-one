@@ -50,7 +50,7 @@ document.addEventListener('selectionchange', () => {
     const range = selection.getRangeAt(0);
     const rect = range.getBoundingClientRect();
     console.log('Rect:', rect);
-    createButton(rect.right + window.scrollX, rect.bottom + window.scrollY + 5);
+    // createButton(rect.right + window.scrollX, rect.bottom + window.scrollY + 5);
     lastSelection = text;
   } else {
     removeButton();
