@@ -8,4 +8,10 @@ document.addEventListener('DOMContentLoaded', () => {
       ul.appendChild(li);
     });
   });
+
+  document.getElementById('clear-memories').onclick = () => {
+    chrome.storage.local.set({ memories: [] }, () => {
+      document.getElementById('memories').innerHTML = '';
+    });
+  };
 }); 
