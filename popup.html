@@ -4,14 +4,28 @@
     <title>Memories</title>
     <style>
       body { font-family: sans-serif; margin: 10px; }
+      .group-list { margin-bottom: 10px; }
+      .group-btn { margin-left: 5px; }
       ul { padding-left: 20px; }
       li { margin-bottom: 8px; }
+      .memories-header { display: flex; align-items: center; }
+      .memories-header button { margin-left: 10px; }
     </style>
   </head>
   <body>
-    <h3>Saved Memories</h3>
-    <ul id="memories"></ul>
-    <button id="clear-memories" style="margin-top:10px;">Clear All Memories</button>
+    <h3>Memory Groups</h3>
+    <div class="group-list" id="group-list"></div>
+    <input id="new-group" placeholder="Add new group" />
+    <button id="add-group">Add Group</button>
+    <hr>
+    <div id="memories-section" style="display:none;">
+      <div class="memories-header">
+        <h4 id="group-title"></h4>
+        <button id="delete-group" class="group-btn">Delete Group</button>
+        <button id="clear-group" class="group-btn">Clear Group</button>
+      </div>
+      <ul id="memories"></ul>
+    </div>
     <script src="popup.js"></script>
   </body>
 </html> 

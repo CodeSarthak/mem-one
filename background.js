@@ -1,30 +1,64 @@
-// Create context menu on install
-chrome.runtime.onInstalled.addListener(() => {
-  chrome.contextMenus.create({
-    id: 'remember_this',
-    title: 'Remember this',
-    contexts: ['selection']
-  });
-});
+// Helper to get groups and memories
+function getStorage(cb) {
+  chrome.storage.local.get({ groups: ["Default"], memories: { Default: [] } }, cb);
+}
 
-chrome.contextMenus.onClicked.addListener((info, tab) => {
-  if (info.menuItemId === 'remember_this' && info.selectionText) {
-    chrome.storage.local.get({ memories: [] }, (result) => {
-      const memories = result.memories;
-      memories.push({ text: info.selectionText, date: new Date().toISOString() });
-      chrome.storage.local.set({ memories });
+// Helper to set groups and memories
+function setStorage(data, cb) {
+  chrome.storage.local.set(data, cb);
+}
+
+// Create or update context menus for all groups
+function updateContextMenus() {
+  chrome.contextMenus.removeAll(() => {
+    getStorage(({ groups }) => {
+      chrome.contextMenus.create({
+        id: "remember_parent",
+        title: "Remember this in...",
+        contexts: ["selection"]
+      });
+      groups.forEach(group => {
+        chrome.contextMenus.create({
+          id: `remember_${group}`,
+          parentId: "remember_parent",
+          title: group,
+          contexts: ["selection"]
+        });
+      });
     });
+  });
+}
+
+// On install or update, create context menus
+chrome.runtime.onInstalled.addListener(updateContextMenus);
+
+// Listen for group changes from popup
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type === "UPDATE_GROUPS") {
+    setStorage({ groups: message.groups }, () => {
+      updateContextMenus();
+      sendResponse({ success: true });
+    });
+    return true;
+  }
+  if (message.type === "GET_MEMORIES") {
+    getStorage(data => sendResponse(data));
+    return true;
+  }
+  if (message.type === "SET_MEMORIES") {
+    setStorage({ memories: message.memories }, () => sendResponse({ success: true }));
+    return true;
   }
 });
 
-// Existing message handling for ChatGPT injection
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  console.log('Background received message:', message);
-  if (message.type === 'GET_MEMORIES') {
-    chrome.storage.local.get({ memories: [] }, (result) => {
-      console.log('Background sending memories:', result.memories);
-      sendResponse({ memories: result.memories });
+// Handle context menu click
+chrome.contextMenus.onClicked.addListener((info, tab) => {
+  if (info.menuItemId.startsWith("remember_")) {
+    const group = info.menuItemId.replace("remember_", "");
+    getStorage(({ memories }) => {
+      if (!memories[group]) memories[group] = [];
+      memories[group].push({ text: info.selectionText, date: new Date().toISOString() });
+      setStorage({ memories });
     });
-    return true;
   }
 }); 
